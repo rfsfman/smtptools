@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 
 import argparse
-
+import re
+import smtplib
 #
 # dictionary with SMTP session settings
 #
 smtp_options = {"--to":['test@localhost', "recipient of the message"],
                 "--from":['test@localhost',"sender of the message."],
                 "--server":['localhost',"IP address or hostname of a server to connect"],
-                "body":['',"You can use prepared eml file to fill message body."],
+                "--body":[None,"You can use prepared eml file to fill message body."],
                 "--ehlo":['localhost',"EHLO value in SMTP session"],
                 "--attach":['',"Attach file to a message"]}
 
@@ -24,15 +25,26 @@ extra_options = { "--dir":['',"Use dir option to send the whole content of direc
 
                                                   
 def args_initialization():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Utility to send mails on specified server")
     for k,v in smtp_options.items():
-        parser.add_argument(k,help=v[1])
+        req = False
+        if v[0] == None:
+            req = True
+        parser.add_argument(k,help=v[1],required=req)
        
     for  k,v in extra_options.items():
         parser.add_argument(k,help=v[1])
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
+def  input_validation():
+    # TODO
+    pass
 
+def user_input():
+    # TODO
+    pass
+
+        
 args_initialization()
 
