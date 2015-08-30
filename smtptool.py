@@ -9,7 +9,7 @@ from email.mime.text import MIMEText
 # dictionary with SMTP session settings
 #
 smtp_options = {"to":['test@localhost', "recipient of the message"],
-                "from":['test@localhost',"sender of the message."],
+                "From":['test@localhost',"sender of the message."],
                 "server":['localhost',"IP address or hostname of a server to connect"],
                 "body":[None,"You can use prepared eml file to fill message body."],
                 "ehlo":['localhost',"EHLO value in SMTP session"],
@@ -42,15 +42,15 @@ emailRegex = re.compile(r'''(
     
     
 def create_mail(options):
-    if options{"body"}[0] != None:
-        msg = MIMEText(str(smtp_options{"body"}[0]))
-        
+    if options["body"] != None:
+        msg = MIMEText(str(options["body"]))
+    
     else:
         msg  = MIMEText("This is empty body")
         
     msg['Subject'] = 'Testing email from smtptool'    
-    msg['From'] = options{"from"}[0]
-    msg['To'] = options{"to"}[0]
+    msg['From'] = options["from"]
+    msg['To'] = options["to"]
     return msg    
 
 def send_mail(mail,host):
@@ -78,7 +78,20 @@ def  input_validation():
 def user_input():
     # TODO
     args = args_initialization()
+    options = {}
+    options["body"] = args.body
+    if args.to != None:
+        options["to"] = args.to
+    else:
+        options["to"] = smtp_options["to"][0]
+
+    if args.From != None:
+        options["from"] = args.From
+    else:
+        options["from"] = smtp_options["From"][0]
+    message = create_mail(options)
     
+    send_mail(message,"localhost") 
      
 user_input()
         
