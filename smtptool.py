@@ -4,7 +4,7 @@ import argparse
 import re
 import smtplib
 from email.mime.text import MIMEText
-
+from email.parser import Parser
 #
 # dictionary with SMTP session settings
 #
@@ -13,7 +13,8 @@ smtp_options = {"to":['test@localhost', "recipient of the message"],
                 "server":['localhost',"IP address or hostname of a server to connect"],
                 "body":[None,"You can use prepared eml file to fill message body."],
                 "ehlo":['localhost',"EHLO value in SMTP session"],
-                "attach":['',"Attach file to a message"]}
+                "attach":['',"Attach file to a message"],
+                "file":["","Open prepared eml"]}
 
 # additional arguments about number of messages/sessions and etc
 """ number of concurrent threads. Number of messages that will be send
@@ -25,8 +26,9 @@ extra_options = { "dir":['',"Use dir option to send the whole content of directo
                   "threads":[1,"Number of concurrent threads sending emails. Default : 1 thread."]
 }
 
-emailRegex = re.compile(r'''(
-    (\s*)?[a-zA-Z0-9]{1,64}  | \w\.\w #local part
+# TODO 
+"""emailRegex = re.compile(r'''(
+    (([\w])+  | (\w\.\w) )                 #local part
     @
     ([a-zA-Z0-9.-]{4,253}  |        #domain part
     \[ (\d{1,2}| 1\d{1,2} | 2[0-5]{2})
@@ -36,22 +38,29 @@ emailRegex = re.compile(r'''(
     (\d{1,2}| 1\d{1,2} | 2[0-5]{2})
     \.
     (\d{1,2}| 1\d{1,2} | 2[0-5]{2})
-    \])
+    \]) |
+    ([a-zA-Z0-9-]+\.[a-zA-Z]{2,}) 
     )''')
-    
+""" 
     
     
 def create_mail(options):
-    if options["body"] != None:
+    if !options["file"]:
+        if options["body"] != None:
         msg = MIMEText(str(options["body"]))
     
-    else:
-        msg  = MIMEText("This is empty body")
+        else:
+            msg  = MIMEText("This is empty body")
         
-    msg['Subject'] = 'Testing email from smtptool'    
-    msg['From'] = options["from"]
-    msg['To'] = options["to"]
-    return msg    
+        msg['Subject'] = 'Testing email from smtptool'    
+        msg['From'] = options["from"]
+        msg['To'] = options["to"]
+        return msg
+    else:
+        msg = email.message_from_file(options["file"])
+        return msg
+            
+
 
 def send_mail(mail,host):
     s = smtplib.SMTP(host)
@@ -71,11 +80,12 @@ def args_initialization():
 
     return parser.parse_args()
 
-def  input_validation():
+def  input_validation(email):
     # TODO
     pass
+    
 
-def user_input():
+def run():
     # TODO
     args = args_initialization()
     options = {}
@@ -89,11 +99,28 @@ def user_input():
         options["from"] = args.From
     else:
         options["from"] = smtp_options["From"][0]
-    message = create_mail(options)
     
-    send_mail(message,"localhost") 
-     
-user_input()
+
+    if args.server != None:
+        options["server"] = args.server
+    else:
+        options["server"] = smtp_options["server"][0]
+
+    if args.repeat != None and args.repeat > extra_options["repeat"]:
+        options["repeat"] = args.repeat
+    else:
+        options["repeat"] = extra_options["repeat"]
+
+    if args.file != None:
+        options["file"] = args.file
+        
+    message = create_mail(options)        
+    for i in range(0,options["repeat"]):
+        send_mail(message, options["server"]) 
+
+
+if __name__ == '__main__':     
+    run()
         
 
 
